@@ -196,7 +196,7 @@ export default function ExpenseTracker() {
           <div className="flex gap-3">
             {filteredExpenses.length > 0 ? (
               filteredExpenses.map((exp, index) => (
-                  <div className="flex flex-col gap-2 text-sm">
+                  <div className="w-1/3 border border-4 border-amber-100 flex flex-col gap-2 text-sm">
                     <div className="text-gray-500 text-xs">
                        Date : {exp.date.split("T")[0]}
                     </div>
