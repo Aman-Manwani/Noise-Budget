@@ -77,13 +77,7 @@ expense-tracker/
 - Do not hardcode passwords or API keys in source code.
 
 ## 🛠️ Future Improvements
-- Add authentication (JWT-based login system)
 - Implement charts for expense visualization
-- Multi-user support
-
-## 👨‍💻 Contributors
-- **Your Name** - _Project Developer_
-- **Other Contributors** - _Roles_
 
 ## 📜 License
 This project is licensed under the MIT License.

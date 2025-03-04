@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 interface Expense {
   amount: number;
@@ -27,7 +28,11 @@ const categories = [
 
 export default function ExpenseTracker() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [filters, setFilters] = useState<Filters>({ startDate: "", endDate: "", category: "" });
+  const [filters, setFilters] = useState<Filters>({
+    startDate: "",
+    endDate: "",
+    category: "",
+  });
   const [newExpense, setNewExpense] = useState<Expense>({
     amount: 0,
     category: "",
@@ -35,21 +40,40 @@ export default function ExpenseTracker() {
     description: "",
   });
 
-  const addExpense = () => {
-    if (!newExpense.amount || !newExpense.category || !newExpense.date){
+  // Fetch expenses from backend
+  const fetchExpenses = async () => {
+    try {
+      const { data } = await axios.get("http://localhost:8000/getExpenses");
+      setExpenses(data);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const addExpense = async () => {
+    if (!newExpense.amount || !newExpense.category || !newExpense.date) {
       alert("Please fill in all fields");
       return;
     }
-    setExpenses([
-      ...expenses,
-      { ...newExpense, amount: parseFloat(newExpense.amount.toString()) },
-    ]);
-    setNewExpense({ amount: 0, category: "", date: "", description: "" });
+
+    try {
+      await axios.post("http://localhost:8000/addExpense", newExpense);
+      setNewExpense({ amount: 0, category: "", date: "", description: "" });
+      fetchExpenses(); // Refresh expenses after adding
+    } catch (error) {
+      console.error("Error adding expense:", error);
+      alert("Failed to add expense");
+    }
   };
 
   const filteredExpenses = expenses.filter(
     (exp) =>
-      (!filters.startDate || !filters.endDate || exp.date > filters.startDate) &&
+      (!filters.startDate || exp.date >= filters.startDate) &&
+      (!filters.endDate || exp.date <= filters.endDate) &&
       (!filters.category || exp.category === filters.category)
   );
 
@@ -62,7 +86,7 @@ export default function ExpenseTracker() {
     <div className="flex gap-4 p-4">
       {/* Sidebar for Filters */}
       <div className="w-1/4 flex flex-col gap-4 p-4 bg-gray-100 rounded-lg shadow-md">
-        <h2 className="text-lg font-bold mb-2 ">Filters</h2>
+        <h2 className="text-lg font-bold mb-2">Filters</h2>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Start Date
@@ -71,7 +95,9 @@ export default function ExpenseTracker() {
             type="date"
             className="w-full p-2 border rounded mb-2"
             value={filters.startDate}
-            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+            onChange={(e) =>
+              setFilters({ ...filters, startDate: e.target.value })
+            }
           />
         </div>
         <div>
@@ -82,7 +108,9 @@ export default function ExpenseTracker() {
             type="date"
             className="w-full p-2 border rounded mb-2"
             value={filters.endDate}
-            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+            onChange={(e) =>
+              setFilters({ ...filters, endDate: e.target.value })
+            }
           />
         </div>
         <div>
@@ -104,7 +132,7 @@ export default function ExpenseTracker() {
             ))}
           </select>
         </div>
-        <button className="text-white bg-blue-500 p-2 rounded cursor-pointer">
+        <button className="bg-blue-500 py-2 cursor-pointer text-white rounded-md">
           Add Filters
         </button>
       </div>
@@ -124,7 +152,7 @@ export default function ExpenseTracker() {
           />
           <div>
             <select
-              className="w-full p-2 border rounded "
+              className="w-full p-2 border rounded"
               value={newExpense.category}
               onChange={(e) =>
                 setNewExpense({ ...newExpense, category: e.target.value })
@@ -165,12 +193,23 @@ export default function ExpenseTracker() {
 
         <div className="mt-4">
           <h2 className="text-lg font-semibold mb-2">Expense List</h2>
-          <div>
+          <div className="flex gap-3">
             {filteredExpenses.length > 0 ? (
               filteredExpenses.map((exp, index) => (
-                <p key={index} className="text-sm border-b py-1">
-                  {exp.date} - {exp.category}: ${exp.amount} ({exp.description})
-                </p>
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="text-gray-500 text-xs">
+                       Date : {exp.date.split("T")[0]}
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="text-lg font-semibold">{exp.category}</div>
+                      <div className="text-green-600 font-bold">
+                        ${exp.amount}
+                      </div>
+                    </div>
+                    <div className="text-gray-700 italic">
+                      {exp.description}
+                    </div>
+                  </div>
               ))
             ) : (
               <p className="text-red-500 font-bold">No expenses found</p>

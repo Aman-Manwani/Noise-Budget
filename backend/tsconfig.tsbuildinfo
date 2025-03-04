@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/database/db.ts"],"version":"5.8.2"}
+{"root":["./src/index.ts","./src/controllers/expensecontroller.ts","./src/database/db.ts","./src/models/expensemodel.ts","./src/routes/router.ts"],"version":"5.8.2"}
